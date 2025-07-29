@@ -9,7 +9,7 @@ $sql = new mysqli('localhost', $config['database']['db_username'], $config['data
 $sql->set_charset("utf8mb4");
 
 if ($sql->connect_error) {
-	die(json_encode(['status' => false, 'msg' => $sql->connect_error, 'error' => 'database'], 423));
+    die(json_encode(['status' => false, 'msg' => $sql->connect_error, 'error' => 'database'], 423));
 }
 
 define('API_KEY', $config['token']);
@@ -43,7 +43,7 @@ if (!isset($sql->connect_error)) {
             if ($user->num_rows == 0) {
                 $sql->query("INSERT INTO `users`(`from_id`) VALUES ('$from_id')");
             }
-            
+
             $test_account = $sql->query("SELECT * FROM `test_account_setting`");
             $payment_setting = $sql->query("SELECT * FROM `payment_setting`");
             $spam_setting = $sql->query("SELECT * FROM `spam_setting`");
@@ -62,7 +62,8 @@ if (!isset($sql->connect_error)) {
 
 # ----------------- [ <- functions -> ] ----------------- #
 
-function bot($method, $datas = []) {
+function bot($method, $datas = [])
+{
     $url = "https://api.telegram.org/bot" . API_KEY . "/" . $method;
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -78,7 +79,8 @@ function bot($method, $datas = []) {
     curl_close($ch);
 }
 
-function sendMessage($chat_id, $text, $keyboard = null, $mrk = 'html') {
+function sendMessage($chat_id, $text, $keyboard = null, $mrk = 'html')
+{
     $params = [
         'chat_id' => $chat_id,
         'text' => $text,
@@ -89,7 +91,8 @@ function sendMessage($chat_id, $text, $keyboard = null, $mrk = 'html') {
     return bot('sendMessage', $params);
 }
 
-function forwardMessage($from, $to, $message_id, $mrk = 'html') {
+function forwardMessage($from, $to, $message_id, $mrk = 'html')
+{
     $params = [
         'chat_id' => $to,
         'from_chat_id' => $from,
@@ -99,14 +102,15 @@ function forwardMessage($from, $to, $message_id, $mrk = 'html') {
     return bot('forwardMessage', $params);
 }
 
-function editMessage($chat_id, $text, $message_id, $keyboard = null, $mrk = 'html') {
+function editMessage($chat_id, $text, $message_id, $keyboard = null, $mrk = 'html')
+{
     $params = [
         'chat_id' => $chat_id,
         'message_id' => $message_id,
         'text' => '⏳',
     ];
     bot('editMessageText', $params);
-    
+
     $params = [
         'chat_id' => $chat_id,
         'message_id' => $message_id,
@@ -118,7 +122,8 @@ function editMessage($chat_id, $text, $message_id, $keyboard = null, $mrk = 'htm
     return bot('editMessageText', $params);
 }
 
-function deleteMessage($chat_id, $message_id) {
+function deleteMessage($chat_id, $message_id)
+{
     $params = [
         'chat_id' => $chat_id,
         'message_id' => $message_id
@@ -126,7 +131,8 @@ function deleteMessage($chat_id, $message_id) {
     return bot('deleteMessage', $params);
 }
 
-function alert($text, $show = true) {
+function alert($text, $show = true)
+{
     global $query_id;
     $params = [
         'callback_query_id' => $query_id,
@@ -136,12 +142,14 @@ function alert($text, $show = true) {
     return bot('answerCallbackQuery', $params);
 }
 
-function step($step) {
+function step($step)
+{
     global $sql, $from_id;
     $sql->query("UPDATE `users` SET `step` = '$step' WHERE `from_id` = '$from_id'");
 }
 
-function checkURL($url) {
+function checkURL($url)
+{
     $ch = curl_init($url);
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => 1, CURLOPT_TIMEOUT => 10]);
     $output = curl_exec($ch);
@@ -150,7 +158,8 @@ function checkURL($url) {
     return $httpcode;
 }
 
-function Conversion($byte, $one = 'GB') {
+function Conversion($byte, $one = 'GB')
+{
     if (isset($one)) {
         if ($one == 'GB') {
             $limit = floor($byte / 1048576);
@@ -163,24 +172,26 @@ function Conversion($byte, $one = 'GB') {
     return $limit;
 }
 
-function convertToBytes($from) {
+function convertToBytes($from)
+{
     $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
     $number = substr($from, 0, -2);
-    $suffix = strtoupper(substr($from,-2));
+    $suffix = strtoupper(substr($from, -2));
 
-    if(is_numeric(substr($suffix, 0, 1))) {
+    if (is_numeric(substr($suffix, 0, 1))) {
         return preg_replace('/[^\d]/', '', $from);
     }
 
     $exponent = array_flip($units)[$suffix] ?? null;
-    if($exponent === null) {
+    if ($exponent === null) {
         return null;
     }
 
     return $number * (1024 ** $exponent);
 }
 
-function isJoin($from_id) {
+function isJoin($from_id)
+{
     global $sql;
     $lockSQL = $sql->query("SELECT `chat_id` FROM `lock`");
     if ($lockSQL->num_rows > 0) {
@@ -194,7 +205,8 @@ function isJoin($from_id) {
     return true;
 }
 
-function joinSend($from_id){
+function joinSend($from_id)
+{
     global $sql, $texts;
     $lockSQL = $sql->query("SELECT `chat_id`, `name` FROM `lock`");
     $buttons = [];
@@ -214,16 +226,17 @@ function joinSend($from_id){
     }
 }
 
-function zarinpalGenerator($from_id, $price, $code) {
+function zarinpalGenerator($from_id, $price, $code)
+{
     global $config, $payment_setting;
-    
+
     $data = array(
         'merchant_id' => $payment_setting['zarinpal_token'],
         'amount' => $price * 10,
         'callback_url' => $config['domin'] . '/api/callback_zarinpal.php?from_id=' . $from_id . '&price=' . $price . '&code=' . $code,
         'description' => "$code",
     );
-    
+
     $jsonData = json_encode($data);
     $ch = curl_init('https://api.zarinpal.com/pg/v4/payment/request.json');
     curl_setopt($ch, CURLOPT_USERAGENT, 'ZarinPal Rest Api v1');
@@ -233,42 +246,44 @@ function zarinpalGenerator($from_id, $price, $code) {
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Length: ' . strlen($jsonData)));
     $result = json_decode(curl_exec($ch), true);
     curl_close($ch);
-    
+
     if ($result['data']['code'] == 100) {
         return 'https://www.zarinpal.com/pg/StartPay/' . $result['data']['authority'];
     } else {
-        return 'https://www.zarinpal.com/pg/StartPay/error:'.$result['data']['code'];
+        return 'https://www.zarinpal.com/pg/StartPay/error:' . $result['data']['code'];
     }
 }
 
-function checkZarinpalFactor($merchend_id, $authority, $amount) {
-	$data = array('merchant_id' => $merchend_id, 'authority' => $authority, 'amount' => $amount);
-	$jsonData = json_encode($data);
-	$ch = curl_init('https://api.zarinpal.com/pg/v4/payment/verify.json');
-	curl_setopt($ch, CURLOPT_USERAGENT, 'ZarinPal Rest Api v4');
-	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Length: ' . strlen($jsonData)));
-	$result = curl_exec($ch);
-	curl_close($ch);
-	$result = json_decode($result, true);
-	if ($result['data']['code'] == 100) {
+function checkZarinpalFactor($merchend_id, $authority, $amount)
+{
+    $data = array('merchant_id' => $merchend_id, 'authority' => $authority, 'amount' => $amount);
+    $jsonData = json_encode($data);
+    $ch = curl_init('https://api.zarinpal.com/pg/v4/payment/verify.json');
+    curl_setopt($ch, CURLOPT_USERAGENT, 'ZarinPal Rest Api v4');
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Content-Length: ' . strlen($jsonData)));
+    $result = curl_exec($ch);
+    curl_close($ch);
+    $result = json_decode($result, true);
+    if ($result['data']['code'] == 100) {
         return true;
     } else {
         return false;
     }
 }
 
-function idpayGenerator($from_id, $price, $code) {
+function idpayGenerator($from_id, $price, $code)
+{
     global $config, $payment_setting;
-    
+
     $data = array(
         'order_id' => $code,
         'amount' => $price,
         'callback' => $config['domin'] . '/api/callback_idpay.php?from_id=' . $from_id . '&price=' . $price . '&code=' . $code,
     );
-    
+
     $data = json_encode($data);
     $curl = curl_init();
     curl_setopt_array($curl, array(
@@ -285,15 +300,16 @@ function idpayGenerator($from_id, $price, $code) {
             'Content-Type: application/json',
             'X-API-KEY: ' . $payment_setting['idpay_token'],
             'X-SANDBOX: 1'
-      ),
+        ),
     ));
     $response = json_decode(curl_exec($curl), true);
     curl_close($curl);
     return $response['link'] ?? 'https://idpay.ir';
 }
 
-function nowPaymentGenerator($price_amount, $price_currency, $pay_currency, $order_id) {
-	global $payment_setting;
+function nowPaymentGenerator($price_amount, $price_currency, $pay_currency, $order_id)
+{
+    global $payment_setting;
 
     $fields = array(
         "price_amount" => $price_amount,
@@ -322,8 +338,9 @@ function nowPaymentGenerator($price_amount, $price_currency, $pay_currency, $ord
     return $response;
 }
 
-function checkNowPayment($payment_id) {
-	global $payment_setting;
+function checkNowPayment($payment_id)
+{
+    global $payment_setting;
 
     $curl = curl_init();
     curl_setopt_array($curl, array(
@@ -344,33 +361,51 @@ function checkNowPayment($payment_id) {
     return $response;
 }
 
-function generateUUID() {
-    return sprintf( '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-        mt_rand(0, 0xffff), mt_rand( 0, 0xffff ),
+function generateUUID()
+{
+    return sprintf(
+        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        mt_rand(0, 0xffff),
+        mt_rand(0, 0xffff),
         mt_rand(0, 0xffff),
         mt_rand(0, 0x0fff) | 0x4000,
         mt_rand(0, 0x3fff) | 0x8000,
-        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+        mt_rand(0, 0xffff),
+        mt_rand(0, 0xffff),
+        mt_rand(0, 0xffff)
     );
 }
 
-function loginPanelSanayi($address, $username, $password) {
-    $ch = curl_init();
-    curl_setopt_array($ch, [
+function loginPanelSanayi($address, $username, $password)
+{
+    $curl = curl_init();
+
+    curl_setopt_array($curl, array(
         CURLOPT_URL => $address . '/login',
-        CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_POST => true,
-        CURLOPT_POSTFIELDS => http_build_query(['username' => $username, 'password' => $password]),
-        CURLOPT_COOKIEJAR => 'cookie.txt',
-    ]);
-    $response = json_decode(curl_exec($ch), true);
-    curl_close($ch);
+        CURLOPT_ENCODING => '',
+        CURLOPT_MAXREDIRS => 10,
+        CURLOPT_TIMEOUT => 0,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        CURLOPT_CUSTOMREQUEST => 'POST',
+        CURLOPT_POSTFIELDS => 'username=' . $username . '&password=' . $password,
+        CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/x-www-form-urlencoded'
+        ),
+    ));
+
+    $response = json_decode(curl_exec($curl),true);
+
+    curl_close($curl);
     return $response;
 }
 
-function loginPanel($address, $username, $password) {
-	$fields = array('username' => $username, 'password' => $password);
+function loginPanel($address, $username, $password)
+{
+    $fields = array('username' => $username, 'password' => $password);
     $curl = curl_init($address . '/api/admin/token');
     curl_setopt_array($curl, array(
         CURLOPT_RETURNTRANSFER => true,
@@ -387,7 +422,8 @@ function loginPanel($address, $username, $password) {
     curl_close($curl);
 }
 
-function createService($username, $limit, $expire_data, $proxies, $inbounds, $token, $url) {
+function createService($username, $limit, $expire_data, $proxies, $inbounds, $token, $url)
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url . '/api/user');
     curl_setopt($ch, CURLOPT_POST, true);
@@ -403,7 +439,8 @@ function createService($username, $limit, $expire_data, $proxies, $inbounds, $to
     return $response;
 }
 
-function getUserInfo($username, $token, $url) {
+function getUserInfo($username, $token, $url)
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url . '/api/user/' . $username);
     curl_setopt($ch, CURLOPT_HTTPGET, true);
@@ -414,10 +451,11 @@ function getUserInfo($username, $token, $url) {
     return $response;
 }
 
-function resetUserDataUsage($username, $token, $url) {
+function resetUserDataUsage($username, $token, $url)
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url . '/api/user/' . $username . '/reset');
-    curl_setopt($ch, CURLOPT_POST , true);
+    curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept: application/json', 'Authorization: Bearer ' . $token));
     $response = json_decode(curl_exec($ch), true);
@@ -425,7 +463,8 @@ function resetUserDataUsage($username, $token, $url) {
     return $response;
 }
 
-function getSystemStatus($token, $url) {
+function getSystemStatus($token, $url)
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url . '/api/system');
     curl_setopt($ch, CURLOPT_HTTPGET, true);
@@ -436,7 +475,8 @@ function getSystemStatus($token, $url) {
     return $response;
 }
 
-function removeuser($username, $token, $url) {
+function removeuser($username, $token, $url)
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url . '/api/user/' . $username);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
@@ -448,7 +488,8 @@ function removeuser($username, $token, $url) {
     return $response;
 }
 
-function Modifyuser($username, $data, $token, $url) {
+function Modifyuser($username, $data, $token, $url)
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url . '/api/user/' . $username);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -460,7 +501,8 @@ function Modifyuser($username, $data, $token, $url) {
     return $response;
 }
 
-function inbounds($token, $url) {
+function inbounds($token, $url)
+{
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url . '/api/inbounds');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -471,7 +513,8 @@ function inbounds($token, $url) {
     return $response;
 }
 
-function checkInbound($inbounds, $inbound) {
+function checkInbound($inbounds, $inbound)
+{
     $inbounds = json_decode($inbounds, true);
     $found_inbound = false;
     foreach ($inbounds as $protocol) {
@@ -536,7 +579,8 @@ $cancel_copen = json_encode(['inline_keyboard' => [
 ]]);
 
 $confirm_service = json_encode(['keyboard' => [
-    [['text' => '☑️ ایجاد سرویس']], [['text' => '❌  انصراف']]
+    [['text' => '☑️ ایجاد سرویس']],
+    [['text' => '❌  انصراف']]
 ], 'resize_keyboard' => true]);
 
 $select_diposet_payment = json_encode(['inline_keyboard' => [
