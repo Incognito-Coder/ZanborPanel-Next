@@ -12,14 +12,8 @@ class Sanayi
         $this->base_url = $base_url;
         $this->session = $session;
         $this->headers = [
-            "Cookie: session=" . $this->session,
-            "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:103.0) Gecko/20100101 Firefox/103.0",
-            "Conection: keep-alive",
-            "Content-Type: application/x-www-form-urlencoded; charset=UTF-8",
-            "Host: " . str_replace(['https://', 'http://'], ['', ''], $base_url),
-            "Origin: " . $base_url,
-            "Referer: " . $base_url . '/panel/api/inbounds',
-            "X-Requested-With: XMLHttpRequest"
+            "Cookie: tx-ui=" . $this->session,
+            "Content-Type: application/x-www-form-urlencoded; charset=UTF-8"
         ];
     }
 
@@ -114,10 +108,11 @@ class Sanayi
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_CUSTOMREQUEST => 'GET',
             CURLOPT_HTTPHEADER => $this->headers
         ));
         $result = json_decode(curl_exec($curl), true)['obj'];
+        file_put_contents('sanayi.log', var_export($result,true));
         $status = false;
         foreach ($result as $value) {
             if ($value['id'] == $inbound_id) {

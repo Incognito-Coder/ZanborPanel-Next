@@ -378,6 +378,8 @@ function generateUUID()
 
 function loginPanelSanayi($address, $username, $password)
 {
+    $cookieFile = __DIR__ . '/cookies.txt'; // Save cookies in project directory
+
     $curl = curl_init();
 
     curl_setopt_array($curl, array(
@@ -395,9 +397,11 @@ function loginPanelSanayi($address, $username, $password)
         CURLOPT_HTTPHEADER => array(
             'Content-Type: application/x-www-form-urlencoded'
         ),
+        CURLOPT_COOKIEJAR => $cookieFile,   // Store cookies after request
+        CURLOPT_COOKIEFILE => $cookieFile,  // Send cookies if file exists
     ));
 
-    $response = json_decode(curl_exec($curl),true);
+    $response = json_decode(curl_exec($curl), true);
 
     curl_close($curl);
     return $response;
@@ -646,7 +650,7 @@ $manage_test_account = json_encode(['inline_keyboard' => [
 $manage_auth = json_encode(['inline_keyboard' => [
     [['text' => ($auth_setting['status'] == 'active') ? '🟢' : '🔴', 'callback_data' => 'change_status_auth'], ['text' => 'ℹ️ سیستم احرازهویت :', 'callback_data' => 'null']],
     [['text' => ($auth_setting['iran_number'] == 'active') ? '🟢' : '🔴', 'callback_data' => 'change_status_auth_iran'], ['text' => '🇮🇷 شماره ایران :', 'callback_data' => 'null']],
-    [['text' => ($auth_setting['virtual_number'] == 'active') ? '🟢' : '🔴', 'callback_data' => 'change_status_auth_virtual'], ['text' => '🏴󠁧󠁢󠁥󠁮󠁧󠁿 شماره مجازی :', 'callback_data' => 'null']],
+    [['text' => ($auth_setting['virtual_number'] == 'active') ? '🟢' : '🔴', 'callback_data' => 'change_status_auth_virtual'], ['text' => '🏴 شماره مجازی :', 'callback_data' => 'null']],
     [['text' => ($auth_setting['both_number'] == 'active') ? '🟢' : '🔴', 'callback_data' => 'change_status_auth_all_country'], ['text' => '🌎 همه شماره ها :', 'callback_data' => 'null']],
 ]]);
 
