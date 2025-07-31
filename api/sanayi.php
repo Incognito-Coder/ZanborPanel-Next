@@ -68,7 +68,7 @@ class Sanayi
         return $id;
     }
 
-    private function request($url, $method = false, array $headers = null, $data = null)
+    private function request($url, $method = false, ?array $headers = null, $data = null)
     {
         $curl = curl_init();
 
@@ -131,7 +131,7 @@ class Sanayi
 
     public function getSubPort()
     {
-        $url = $this->base_url . '/panel/api/setting/all';
+        $url = $this->base_url . '/panel/setting/all';
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
@@ -164,7 +164,7 @@ class Sanayi
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_CUSTOMREQUEST => 'POST',
+            CURLOPT_CUSTOMREQUEST => 'GET',
             CURLOPT_HTTPHEADER => $this->headers
         ));
         $result = json_decode(curl_exec($curl), true)['obj'];
